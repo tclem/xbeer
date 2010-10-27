@@ -5,6 +5,7 @@ require 'serialport'
 
 require 'xbeer/serial'
 require 'xbeer/xbee'
+require 'xbeer/xbee_api'
 
 module Xbeer
   

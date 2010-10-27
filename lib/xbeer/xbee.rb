@@ -3,10 +3,6 @@ require 'pp'
 
 module Xbeer
 
-  class XBeeAtCommands
-    
-  end
-
   class Xbee
   
     AT_COMMANDS = [
@@ -51,7 +47,7 @@ module Xbeer
         return
       end
 
-      n = Array.new
+      n = []
       begin
         n = n << {:MY => r, 
                   :SH => read_response,
@@ -64,6 +60,10 @@ module Xbeer
       puts "found #{n.length} modules"
       pp n
       n
+    end
+    
+    def save!
+      write_at_cmd "WR"
     end
   
     # 
