@@ -36,6 +36,15 @@ module Xbeer
     end
   end  
 
+  class ReceivePacket < ReceivedFrame
+    attr_accessor :frame_id, :src_addr, :signal_strength, :received_message
+    
+    def cmd_data=(data_string)
+      src_high, src_low, self.signal_strength, opts, self.received_message = data_string.unpack("NNnna*")
+      self.scr_addr = (src_high << 32) + src_low
+    end
+  end
+
   class TransmitStatusResponse < ReceivedFrame
     attr_accessor :frame_id, :status
     
@@ -47,10 +56,9 @@ module Xbeer
       self.frame_id, status_byte = data_string.unpack("CC")
       self.status = case status_byte
       when 0..3 : command_statuses[status_byte]
-      else raise "AT Command Response frame appears to include an invalid status: 0x%x" % status_byte
+      else raise "Transmit Status Response frame appears to include an invalid status: 0x%x" % status_byte
       end
     end
-    
   end
 
   class ATCommandResponse < ReceivedFrame
@@ -73,7 +81,6 @@ module Xbeer
       #actually assign and move along
       @cmd_data = data_string
     end
-    
   end
   
 end # end module Xbeer

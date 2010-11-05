@@ -62,10 +62,14 @@ module Xbeer
       r = TransmitStatusResponse.new(read_api)
       pp r
       puts "tx was successful" if r.status == :OK
+      r
     end
     
-    def read_at_cmd
-      
+    def rx
+      r = ReceivePacket.new(read_api)
+      pp r
+      puts "signal strength: #{-(r.signal_strength.hex)}dB"
+      puts "received message: #{r.received_message}"
     end
     
     def exit_api_mode
