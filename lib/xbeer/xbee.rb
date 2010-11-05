@@ -15,6 +15,7 @@ module Xbeer
       {:DL => {:name => "dest address lo ", :desc => "(read/write, default: 0x0, use 0xFFFF to broadcast)"}},
       {:DH => {:name => "dest address hi ", :desc => "(read/write, default: 0x0)"}},
       {:MY => {:name => "my 16bit address", :desc => "(read/write, default: 0x0, set to 0xFFFF to disable 16bit addressing)"}},
+      {:AP => {:name => "API Mode        ", :desc => "(read/write, default: 0, 1 = API mode, 2 = API mode w/ escape"}},
       ]
   
     def initialize(opts={})
