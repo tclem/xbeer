@@ -22,7 +22,7 @@ module Xbeer
       raise "Error: Did not find a valid usb device attached!" if(@port_str == "/dev/") 
       puts "using #{usb} baud_rate: #{@baud_rate}"
       @port = SerialPort.new(@port_str, @baud_rate, @data_bits, @stop_bits, @parity)
-      @port.read_timeout = 5000
+      @port.read_timeout = opts[:read_timeout] | 5000
       @buffer = "" # ? v. bytes
       @buffer_until = convert_to_byte( opts[:buffer_until]) if opts[:buffer_until]
     end

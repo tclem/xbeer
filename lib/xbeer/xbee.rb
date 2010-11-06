@@ -19,7 +19,7 @@ module Xbeer
       ]
   
     def initialize(opts={})
-      @s = Serial.new({:buffer_until => "\r"})
+      @s = Serial.new(opts.merge({:buffer_until => "\r"}))
       no_setup = opts[:no_setup] | false
       
       begin

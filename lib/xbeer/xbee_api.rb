@@ -89,9 +89,16 @@ module Xbeer
   end
   
   class XbeeListener < XbeeApi
-    def initialize(opts={:no_setup => true})
+    
+    def initialize(opts={:no_setup => true, :read_timeout => 10000})
       super(opts)
     end
+    
+    def rx_gps
+      pp r = GpsReceivePacket.new(read_api)
+      r
+    end
+    
   end # end class XbeeListener
   
 end # end module Xbeer

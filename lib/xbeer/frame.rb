@@ -46,6 +46,26 @@ module Xbeer
       @signal_strength_db = "-#{@signal_strength} dB"
     end
   end
+  
+  class GpsReceivePacket < ReceivePacket
+    attr_accessor :lat, :long, :summary
+    
+    def cmd_data=(data_string)
+      src_high, src_low, @signal_strength, opts, u_lat, u_long = data_string.unpack("NNCCNN")
+      @src_addr = (src_high << 32) + src_low
+      @signal_strength_db = "-#{@signal_strength} dB"
+      @lat = to_signed(u_lat) * 10**-5
+      @long = to_signed(u_long) * 10**-5
+    end
+    
+    private
+    def to_signed(n)
+      length = 32
+      mid = 2**(length-1)
+      max_unsigned = 2**length
+      (n>=mid) ? n - max_unsigned : n
+    end
+  end
 
   class TransmitStatusResponse < ReceivedFrame
     attr_accessor :frame_id, :status
