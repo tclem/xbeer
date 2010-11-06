@@ -20,10 +20,13 @@ module Xbeer
   
     def initialize(opts={})
       @s = Serial.new({:buffer_until => "\r"})
-      @verbose = opts[:verbose] | true
-      puts "connecting to xbee radio and entering AT mode..."
-      @s.write("+++")
-      puts "#{read_response}"
+      no_setup = opts[:no_setup] | false
+      
+      begin
+        puts "connecting to xbee radio and entering AT mode..."
+        @s.write("+++")
+        puts "#{read_response}"
+      end unless no_setup
     end
   
     def show_all_commands
@@ -76,18 +79,16 @@ module Xbeer
     def method_missing(method, *args, &block)
       @s.send(method, *args)
     end
-   
-    private
-  
+
     def write_at_cmd(cmd)
       @s.write("AT#{cmd}\r")
       read_response
     end
-  
+    
+    private  
     def read_response
       begin
         r = @s.read!
-        # puts "verbose: #{r}" if(@verbose && r != false)
         finished = true if r
       end until finished
       @s.clear_buffer!

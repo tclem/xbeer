@@ -38,10 +38,12 @@ module Xbeer
 
   class ReceivePacket < ReceivedFrame
     attr_accessor :frame_id, :src_addr, :signal_strength, :received_message
+    attr_reader :signal_strength_db
     
     def cmd_data=(data_string)
-      src_high, src_low, self.signal_strength, opts, self.received_message = data_string.unpack("NNnna*")
-      self.scr_addr = (src_high << 32) + src_low
+      src_high, src_low, self.signal_strength, opts, self.received_message = data_string.unpack("NNCCa*")
+      self.src_addr = (src_high << 32) + src_low
+      @signal_strength_db = "-#{@signal_strength} dB"
     end
   end
 

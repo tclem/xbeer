@@ -8,10 +8,15 @@ module Xbeer
     
     def initialize(opts={})
       super(opts)
-      r = write_at_cmd "AP2"
-      puts "ensuring api mode (AP = 2): #{r}"
-      save!
-      write_at_cmd "CN"   # exit command mode (this applies changes too)
+      
+      no_setup = opts[:no_setup] | false
+      begin
+        r = write_at_cmd "AP2"
+        puts "ensuring api mode (AP = 2): #{r}"
+        save!
+        write_at_cmd "CN"   # exit command mode (this applies changes too)
+      end unless no_setup
+      
       @frame_id = 0x52
     end
     
@@ -23,7 +28,7 @@ module Xbeer
       end
       puts "Got some stray bytes for ya: #{stray_bytes.map {|b| "0x%x" % b} .join(", ")}" unless stray_bytes.empty?
       header = @s.read(3).xb_unescape
-      # puts "Read header: #{header.unpack("C*").join(", ")}"
+      puts "Read header: #{header.unpack("C*").join(", ")}"
       frame_remaining = frame_length = api_identifier = cmd_data = ""
       if header.length == 3
         frame_length, api_identifier = header.unpack("nC")
@@ -66,10 +71,8 @@ module Xbeer
     end
     
     def rx
-      r = ReceivePacket.new(read_api)
-      pp r
-      puts "signal strength: #{-(r.signal_strength.hex)}dB"
-      puts "received message: #{r.received_message}"
+      pp r = ReceivePacket.new(read_api)
+      r
     end
     
     def exit_api_mode
@@ -84,5 +87,11 @@ module Xbeer
     end
     
   end
+  
+  class XbeeListener < XbeeApi
+    def initialize(opts={:no_setup => true})
+      super(opts)
+    end
+  end # end class XbeeListener
   
 end # end module Xbeer
