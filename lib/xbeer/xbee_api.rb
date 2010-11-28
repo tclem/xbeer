@@ -90,7 +90,7 @@ module Xbeer
   
   class XbeeListener < XbeeApi
     
-    def initialize(opts={:no_setup => true, :read_timeout => 10000})
+    def initialize(opts={:no_setup => true, :read_timeout => 0})
       super(opts)
     end
     

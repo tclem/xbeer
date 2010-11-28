@@ -51,7 +51,10 @@ module Xbeer
     attr_accessor :lat, :long, :summary, :course, :speed
     
     def cmd_data=(data_string)
-      src_high, src_low, @signal_strength, opts, u_lat, u_long, raw_course, raw_speed = data_string.unpack("NNCCNNNN")
+      src_high, src_low, 
+      @signal_strength, opts, u_lat, u_long, 
+      raw_course, raw_speed = data_string.unpack("NNCCNNNN")
+      
       @src_addr = (src_high << 32) + src_low
       @signal_strength_db = "-#{@signal_strength} dB"
       @lat = to_signed(u_lat) * 10**-5
