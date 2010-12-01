@@ -4,6 +4,9 @@ require 'pp'
 
 module Xbeer
   
+  class CheckSumError < StandardError
+  end
+  
   class XbeeApi < Xbee
     
     def initialize(opts={})
@@ -42,7 +45,7 @@ module Xbeer
       data = api_identifier.chr + cmd_data.xb_unescape
       sent_checksum = @s.getc
       unless sent_checksum == Frame.checksum(data)
-        raise "Bad checksum - data discarded"
+        raise CheckSumError, "Bad checksum - data discarded"
       end
       puts "Raw response: 0x#{data.unpack("H*")}"
       data
@@ -73,6 +76,11 @@ module Xbeer
     def rx
       pp r = ReceivePacket.new(read_api)
       r
+      # data = read_api
+      # case data[0]
+      #   case 0x90 : ReceivedPacket.new(data)
+      # else ReceivedFrame.new(data)
+      # end
     end
     
     def exit_api_mode
@@ -95,8 +103,9 @@ module Xbeer
     end
     
     def rx_gps
-      pp r = GpsReceivePacket.new(read_api)
-      r
+      pp r = SafeTraxxPacket.create(read_api); r
+      # pp r = GpsReceivePacket.new(read_api)
+      # r
     end
     
   end # end class XbeeListener

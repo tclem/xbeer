@@ -47,20 +47,54 @@ module Xbeer
     end
   end
   
-  class GpsReceivePacket < ReceivePacket
-    attr_accessor :lat, :long, :summary, :course, :speed
+  class SafeTraxxPacket < ReceivedFrame
+    
+    def self.create(frame_data)
+      case frame_data[11]
+      when 1 : SafeTraxxGpsPacket.new(frame_data)
+      when 2 : SafeTraxxDebugPacket.new(frame_data)
+      else SafeTraxxPacket.new(frame_data)
+      end
+    end
+    
+    attr_accessor :frame_id, :src_addr, :signal_strength, :opts, :type, :inner_packet
+    attr_reader :signal_strength_db
+    
+    def packet_types
+      [ [1, :Gps_Packet], [2, :Debug_Packet], ]
+    end
+    
+    def type_desc
+      packet_types.assoc(@type)
+    end
     
     def cmd_data=(data_string)
-      src_high, src_low, 
-      @signal_strength, opts, u_lat, u_long, 
-      raw_course, raw_speed = data_string.unpack("NNCCNNNN")
-      
-      @src_addr = (src_high << 32) + src_low
+      src_high, src_low, @signal_strength, @opts = data_string.unpack("NNCC")
+      self.src_addr = (src_high << 32) + src_low
       @signal_strength_db = "-#{@signal_strength} dB"
-      @lat = to_signed(u_lat) * 10**-5
-      @long = to_signed(u_long) * 10**-5
-      @course = raw_course * 10**-2
-      @speed = raw_speed * 10**-2
+      @type = data_string[10]
+      self.inner_packet = data_string[11..-1]
+    end
+  end
+  
+  class SafeTraxxDebugPacket < SafeTraxxPacket
+    attr_accessor :msg
+    
+    def inner_packet=(data_string)
+      @msg = data_string.unpack("a*")
+    end
+  end
+  
+  class SafeTraxxGpsPacket < SafeTraxxPacket
+    attr_accessor :lat, :long, :summary, :course, :speed
+    
+    def inner_packet=(data_string)
+      u_lat, u_long, raw_course, raw_speed = data_string.unpack("NNNN")
+      
+      @lat = to_signed(u_lat) * 10**-5    # degrees
+      @long = to_signed(u_long) * 10**-5  # degrees
+      @course = raw_course * 10**-2 # degrees
+      @speed = raw_speed * 10**-2   # knots
       @summary = "Position in deg: (#{@lat}, #{@long}), Course in deg: #{@course}, Speed in knots: #{@speed}"
     end
     
@@ -72,6 +106,32 @@ module Xbeer
       (n>=mid) ? n - max_unsigned : n
     end
   end
+  
+  # class GpsReceivePacket < ReceivePacket
+  #   attr_accessor :lat, :long, :summary, :course, :speed
+  #   
+  #   def cmd_data=(data_string)
+  #     src_high, src_low, 
+  #     @signal_strength, opts, u_lat, u_long, 
+  #     raw_course, raw_speed = data_string.unpack("NNCCNNNN")
+  #     
+  #     @src_addr = (src_high << 32) + src_low
+  #     @signal_strength_db = "-#{@signal_strength} dB"
+  #     @lat = to_signed(u_lat) * 10**-5    # degrees
+  #     @long = to_signed(u_long) * 10**-5  # degrees
+  #     @course = raw_course * 10**-2 # degrees
+  #     @speed = raw_speed * 10**-2   # knots
+  #     @summary = "Position in deg: (#{@lat}, #{@long}), Course in deg: #{@course}, Speed in knots: #{@speed}"
+  #   end
+  #   
+  #   private
+  #   def to_signed(n)
+  #     length = 32
+  #     mid = 2**(length-1)
+  #     max_unsigned = 2**length
+  #     (n>=mid) ? n - max_unsigned : n
+  #   end
+  # end
 
   class TransmitStatusResponse < ReceivedFrame
     attr_accessor :frame_id, :status
