@@ -1,3 +1,4 @@
+require 'yajl/json_gem'
 require 'xbeer/string'
 
 module Xbeer
@@ -72,7 +73,7 @@ module Xbeer
       src_high, src_low, @signal_strength, @opts = data_string.unpack("NNCC")
       self.src_addr = (src_high << 32) + src_low
       @signal_strength_db = "-#{@signal_strength} dB"
-      @type = data_string[10]
+      self.type = data_string[10]
       self.inner_packet = data_string[11..-1]
     end
   end
@@ -96,6 +97,15 @@ module Xbeer
       @course = raw_course * 10**-2 # degrees
       @speed = raw_speed * 10**-2   # knots
       @summary = "Position in deg: (#{@lat}, #{@long}), Course in deg: #{@course}, Speed in knots: #{@speed}"
+    end
+    
+    def to_json
+      result = {:name => "0x#{@src_addr.to_s(16)}", 
+                :lat => @lat.to_s, 
+                :lon => @long.to_s,
+                :speed => @speed.to_s,
+                :bearing => @course.to_s}
+      result.to_json
     end
     
     private

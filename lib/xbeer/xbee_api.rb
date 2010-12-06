@@ -26,12 +26,12 @@ module Xbeer
     def read_api
       stray_bytes = []
       until (start_delimiter = @s.readchar) == 0x7e
-        puts "Stray byte 0x%x" % start_delimiter
+        # puts "Stray byte 0x%x" % start_delimiter
         stray_bytes << start_delimiter
       end
-      puts "Got some stray bytes for ya: #{stray_bytes.map {|b| "0x%x" % b} .join(", ")}" unless stray_bytes.empty?
+      # puts "Got some stray bytes for ya: #{stray_bytes.map {|b| "0x%x" % b} .join(", ")}" unless stray_bytes.empty?
       header = @s.read(3).xb_unescape
-      puts "Read header: #{header.unpack("C*").join(", ")}"
+      # puts "Read header: #{header.unpack("C*").join(", ")}"
       frame_remaining = frame_length = api_identifier = cmd_data = ""
       if header.length == 3
         frame_length, api_identifier = header.unpack("nC")
@@ -47,7 +47,7 @@ module Xbeer
       unless sent_checksum == Frame.checksum(data)
         raise CheckSumError, "Bad checksum - data discarded"
       end
-      puts "Raw response: 0x#{data.unpack("H*")}"
+      # puts "Raw response: 0x#{data.unpack("H*")}"
       data
     end
     
@@ -103,9 +103,22 @@ module Xbeer
     end
     
     def rx_gps
-      pp r = SafeTraxxPacket.create(read_api); r
+      SafeTraxxPacket.create(read_api)
       # pp r = GpsReceivePacket.new(read_api)
       # r
+    end
+    
+    def get_two_gps_packets
+      [get_gps_packet, get_gps_packet] 
+    end
+    
+    def get_gps_packet
+      begin
+        p1 = rx_gps
+      rescue CheckSumError => e
+        retry
+      end until p1.instance_of? SafeTraxxGpsPacket
+      p1
     end
     
   end # end class XbeeListener
